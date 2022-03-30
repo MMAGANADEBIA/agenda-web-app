@@ -1,0 +1,44 @@
+body{
+  background-color: #1C1C1C;
+}
+
+.form-control{
+  width: 300px;
+}
+
+label{
+  color: white;
+}
+
+.container{
+  margin-top: 150px;
+}
+
+#darkForm{
+  background-color: #0C0C0D;
+  height: 250px;
+  border-radius: 25px;
+}
+
+#form, #createAccountAnchor{
+  margin-left: 15%;
+  margin-top: 5%;
+}
+
+#createAccountAnchor{
+  color: white;
+  text-decoration: none;
+}
+
+#createAccountAnchor:hover{
+  text-decoration: underline;
+}
+
+#loginButton{
+  margin-top: 10px;
+}
+
+h2{
+  color: white;
+  text-align: center;
+}
