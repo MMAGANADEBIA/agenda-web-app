@@ -1,7 +1,13 @@
 const sqlite3 = require('sqlite3').verbose();
+const { response } = require('express');
 const md5 = require('md5');
 const DBSOURCE = "db.sqlite";
+// const fetch = require('node-fetch');
 let userLoged;
+let passwordLoged;
+let id;
+// import fetch from 'node-fetch';
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 module.exports = {
   postData: async (req, res) => {
     try {
@@ -14,9 +20,17 @@ module.exports = {
         } else {
           console.log('Connected to the SQLite database');
           let data = 'INSERT INTO users (name, password) VALUES(?,?)';
-          db.run(data, [name, md5(password)]);
+          // db.run(data, [name, md5(password)]);
+          db.run(data, [name, md5(password)], (err) => {
+            if (err) {
+              let state = "is-invalid";
+              res.render('createAccount', { state });
+            } else {
+              res.redirect('/');
+            }
+          });
         }
-      })
+      });
       db.close((err) => {
         if (err) {
           console.error(err);
@@ -24,22 +38,30 @@ module.exports = {
           console.log('Closed the database connection.');
         }
       })
-      res.redirect('/');
+      // res.redirect('/');
     } catch (error) {
       console.error(error);
     }
   },
   login: async (req, res) => {
     try {
-      let name = req.body.name;
-      let password = req.body.password;
+      let name;
+      let password;
+      if (!userLoged) {
+        name = req.body.name;
+        password = req.body.password;
+      } else {
+        name = userLoged;
+        password = passwordLoged;
+      }
+
       let db = new sqlite3.Database(DBSOURCE, (err) => {
         if (err) {
           console.error(err);
           throw err;
         } else {
           console.log('Connected to the SQLite database');
-          let data = 'SELECT name, password FROM users WHERE name = ?';
+          let data = 'SELECT name, password, id FROM users WHERE name = ?';
           db.get(data, name, (err, row) => {
             if (err) {
               res.status(400).json({ "error": err.message });
@@ -47,15 +69,31 @@ module.exports = {
             }
             if (row == undefined) {
               console.log("User or password doesn't exist.");
-              res.redirect('/');
+              // res.redirect('/');
+              let data = "is-invalid";
+              res.render('index', { data })
             } else {
               if (row.name == name && row.password == md5(password)) {
-                console.log(`${name} succesfully login.`);
                 userLoged = name;
-                res.redirect('/agenda');
+                passwordLoged = password;
+                id = row.id;
+                console.log(`${name} succesfully login.`);
+                // res.redirect('/agenda');
+                let params = [];
+                let contactsData = `SELECT contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+                db.all(contactsData, params, (err, rows) => {
+                  if (err) {
+                    res.send(`Hay un problema: ${err}`)
+                  } else {
+                    console.log(rows);
+                    res.render('agenda', { rows });
+                  }
+                })
               } else {
                 console.log("User or password doesn't exist.");
-                res.redirect('/')
+                // res.redirect('/');
+                let data = "is-invalid";
+                res.render('index', { data });
               }
             }
           })
@@ -92,7 +130,9 @@ module.exports = {
               }
               if (row == undefined) {
                 console.log("User or password doesn't exist.");
-                res.redirect('/api/deleteAccount');
+                let state = "";
+                let status = "is-invalid";
+                res.render('configureAccount', { state, status });
               } else {
                 if (row.name == name && row.password == md5(password)) {
                   id = row.id;
@@ -108,7 +148,10 @@ module.exports = {
                   )
                 } else {
                   console.log("User or password doesn't exist.");
-                  res.redirect('/api/deleteAccount');
+                  // res.redirect('/api/deleteAccount');
+                  let state = "";
+                  let status = "is-invalid";
+                  res.render('configureAccount', { state, status });
                 }
               }
             })
@@ -135,10 +178,11 @@ module.exports = {
       let name = req.body.name;
       let password = req.body.password;
       let newData = {
-        name: req.body.newName,
-        password: req.body.newPassword ? md5(req.body.newPassword) : null
+        newName: req.body.newName,
+        newPassword: req.body.newPassword ? md5(req.body.newPassword) : null
       }
-      if (name = userLoged) {
+      let state = "is-invalid";
+      if (name == userLoged) {
         let db = new sqlite3.Database(DBSOURCE, err => {
           if (err) {
             console.error(err);
@@ -158,32 +202,82 @@ module.exports = {
                 if (row.name == name && row.password == md5(password)) {
                   id = row.id;
                   db.run('UPDATE users set name = COALESCE(?, name), password = COALESCE(?, password) WHERE id = ? ',
-                    [newData.name, newData.password, id],
-                    function(err, result) {
+                    [newData.newName, newData.newPassword, id],
+                    function(err, res) {
                       if (err) {
                         res.status(400).json({ "error": res.message });
+                        db.close();
                         return;
                       }
                       userLoged = '';
                     }
                   )
+                  res.redirect('/');
                 } else {
                   console.log("User or password doesn't exist.");
-                  res.redirect('/configureAccount');
+                  // res.redirect('/configureAccount');
+                  res.render('configureAccount', { state })
                 }
               }
-            })
+            });
             db.close((err) => {
               if (err) {
                 console.error(err);
               } else {
                 console.log('Databse connection closed.');
-                res.redirect('/');
+                // res.redirect('/');
               }
             })
           }
         });
+      } else {
+        // console.log("el nombre");
+        res.render('configureAccount', { state })
       }
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  addContact: async (req, res) => {
+    try {
+      let name = req.body.name;
+      let lastName = req.body.lastName;
+      let number = req.body.number;
+      let db = new sqlite3.Database(DBSOURCE, (err) => {
+        if (err) {
+          console.error(err);
+          throw err;
+        } else {
+          console.log('Connected to the SQLite database');
+          let data = 'INSERT INTO contacts (name, lastName, number, id) VALUES(?,?,?,?)';
+          db.run(data, [name, lastName, number, id], (err) => {
+            if (err) {
+              // let state = "is-invalid";
+              // res.render('createAccount', { state });
+              // res.redirect('/agenda');
+              res.send(`Ocurrió un problema: ${err}`)
+            } else {
+              let params = [];
+              let contactsData = `SELECT contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+              db.all(contactsData, params, (err, rows) => {
+                if (err) {
+                  res.send(`Hay un problema: ${err}`)
+                } else {
+                  console.log(rows);
+                  res.render('agenda', { rows });
+                }
+              })
+            }
+          });
+          db.close((err) => {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log('Databse connection closed.');
+            }
+          })
+        }
+      });
     } catch (error) {
       console.error(error);
     }

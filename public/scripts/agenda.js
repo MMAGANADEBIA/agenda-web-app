@@ -1,15 +1,16 @@
-let loginButton = document.querySelector('#loginButton').addEventListener('click', () => {
+let addContact = document.querySelector('#addContact').addEventListener('click', () => {
   let form = document.querySelector('#form');
   let name = document.querySelector('#name');
-  let password = document.querySelector('#password');
+  let lastName = document.querySelector('#lastName');
+  let number = document.querySelector('#number');
   if (form.checkValidity() == false) {
     event.preventDefault();
     event.stopPropagation();
     name.classList.add("is-invalid");
-    password.classList.add("is-invalid");
+    lastName.classList.add("is-invalid");
+    number.classList.add("is-invalid");
   } else {
     form.classList.add("was-validated");
     form.submit();
   }
 })
-

@@ -1,4 +1,4 @@
-let loginButton = document.querySelector('#loginButton').addEventListener('click', () => {
+let createAccount = document.querySelector('#createAccount').addEventListener('click', () => {
   let form = document.querySelector('#form');
   let name = document.querySelector('#name');
   let password = document.querySelector('#password');
@@ -12,4 +12,3 @@ let loginButton = document.querySelector('#loginButton').addEventListener('click
     form.submit();
   }
 })
-

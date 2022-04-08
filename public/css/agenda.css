@@ -15,3 +15,7 @@ h2, label{
 #addContact, #configureAccount{
   margin-top: 20px;
 }
+
+#divContactForm{
+  height: 380px;
+}
