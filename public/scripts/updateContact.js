@@ -13,5 +13,8 @@ let updateButton = document.querySelector('#updateButton').addEventListener("cli
     form.classList.add("was-validated");
     form.submit();
   }
-})
+});
 
+// let cancelButton = document.querySelector('#cancelButton').addEventListener("click", () => {
+//   
+// });

@@ -26,7 +26,8 @@
           <label for="number">Número</label>
           <input type="number" class="form-control" id="number" name="number" placeholder="Número"
             value="<%=row.number%>" required>
-          <button type="button" id="cancelButton" class="btn btn-danger">Cancelar</button>
+          <button type="button" id="cancelButton" class="btn btn-danger"
+            onclick="window.history.back()">Cancelar</button>
           <button type="button" id="updateButton" class="btn btn-success">Actualizar</button>
         </form>
       </div>

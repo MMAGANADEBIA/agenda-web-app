@@ -4,7 +4,7 @@ const md5 = require('md5');
 const DBSOURCE = "db.sqlite";
 // const fetch = require('node-fetch');
 let userLoged;
-let passwordLoged;
+// let passwordLoged;
 let id;
 // import fetch from 'node-fetch';
 // const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
@@ -45,15 +45,17 @@ module.exports = {
   },
   login: async (req, res) => {
     try {
-      let name;
-      let password;
-      if (!userLoged) {
-        name = req.body.name;
-        password = req.body.password;
-      } else {
-        name = userLoged;
-        password = passwordLoged;
-      }
+      // let name;
+      // let password;
+      // if (!userLoged) {
+      //   name = req.body.name;
+      //   password = req.body.password;
+      // } else {
+      //   name = userLoged;
+      //   password = passwordLoged;
+      // }
+      let name = req.body.name;
+      let password = req.body.password;
 
       let db = new sqlite3.Database(DBSOURCE, (err) => {
         if (err) {
@@ -74,7 +76,7 @@ module.exports = {
             } else {
               if (row.name == name && row.password == md5(password)) {
                 userLoged = name;
-                passwordLoged = password;
+                // passwordLoged = password;
                 id = row.id;
                 console.log(`${name} succesfully login.`);
                 // res.redirect('/agenda');
