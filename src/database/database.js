@@ -134,6 +134,7 @@ module.exports = {
                 let state = "";
                 let status = "is-invalid";
                 res.render('configureAccount', { state, status });
+                return;
               } else {
                 if (row.name == name && row.password == md5(password)) {
                   id = row.id;
@@ -142,11 +143,32 @@ module.exports = {
                     function(err, result) {
                       if (err) {
                         res.status(400).json({ "error": res.message });
+                        db.close();
                         return;
                       }
                       userLoged = '';
                     }
                   )
+                  let contactsPUser = 'SELECT id FROM contacts WHERE id = ?';
+                  db.get(contactsPUser, id, (err, row) => {
+                    if (err) {
+                      res.status(400).json({ "error": err.message });
+                      db.close();
+                      return;
+                    }
+                    if (row != undefined) {
+                      db.run('DELETE FROM contacts WHERE id = ?',
+                        id,
+                        function(err, res) {
+                          if (err) {
+                            res.status(400).json({ "error": res.message });
+                            db.close();
+                            return;
+                          }
+                        }
+                      )
+                    }
+                  });
                 } else {
                   console.log("User or password doesn't exist.");
                   // res.redirect('/api/deleteAccount');
@@ -156,20 +178,24 @@ module.exports = {
                 }
               }
             })
-            db.close((err) => {
-              if (err) {
-                console.error(err);
-              } else {
-                console.log('Databse connection closed.');
-                res.redirect('/');
-              }
-            })
+
+          }
+        });
+        db.close((err) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log('Databse connection closed.');
+            res.redirect('/');
           }
         })
       } else {
-        console.log("not hello :(");
+        console.log("User or password doesn't exist.");
+        // res.redirect('/api/deleteAccount');
+        let state = "";
+        let status = "is-invalid";
+        res.render('configureAccount', { state, status });
       }
-
     } catch (error) {
       console.error(error);
     }
