@@ -19,3 +19,8 @@ h2, label{
 #divContactForm{
   height: 380px;
 }
+
+#trashBin{
+  height: 24px;
+  width: 24px;
+}

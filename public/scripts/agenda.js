@@ -13,4 +13,25 @@ let addContact = document.querySelector('#addContact').addEventListener('click',
     form.classList.add("was-validated");
     form.submit();
   }
-})
+});
+
+// let delete1 = document.querySelector('#delete1').addEventListener('click', () => {
+//   console.log("hola");
+//   let deleteForm = document.querySelector('#deleteForm');
+//   Swal.fire({
+//     title: 'Eliminar contacto',
+//     text: '¿Seguro que quieres eliminar el contacto?',
+//     icon: 'error',
+//     confirmButtonText: 'Seguro',
+//     showCancelButton: 'true',
+//   }).then((result) => {
+//     if (result.isConfirmed) {
+//       deleteForm.submit();
+//     } else {
+//       event.preventDefault();
+//       event.stopPropagation();
+//     }
+//   })
+// })
+
+

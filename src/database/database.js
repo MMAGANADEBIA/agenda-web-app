@@ -7,7 +7,7 @@ let userLoged;
 let passwordLoged;
 let id;
 // import fetch from 'node-fetch';
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+// const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 module.exports = {
   postData: async (req, res) => {
     try {
@@ -69,7 +69,6 @@ module.exports = {
             }
             if (row == undefined) {
               console.log("User or password doesn't exist.");
-              // res.redirect('/');
               let data = "is-invalid";
               res.render('index', { data })
             } else {
@@ -80,7 +79,7 @@ module.exports = {
                 console.log(`${name} succesfully login.`);
                 // res.redirect('/agenda');
                 let params = [];
-                let contactsData = `SELECT contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+                let contactsData = `SELECT contacts.contactId, contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
                 db.all(contactsData, params, (err, rows) => {
                   if (err) {
                     res.send(`Hay un problema: ${err}`)
@@ -258,12 +257,12 @@ module.exports = {
               res.send(`Ocurrió un problema: ${err}`)
             } else {
               let params = [];
-              let contactsData = `SELECT contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+              let contactsData = `SELECT contacts.contactId, contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
               db.all(contactsData, params, (err, rows) => {
                 if (err) {
                   res.send(`Hay un problema: ${err}`)
                 } else {
-                  console.log(rows);
+                  // console.log(rows);
                   res.render('agenda', { rows });
                 }
               })
@@ -280,6 +279,94 @@ module.exports = {
       });
     } catch (error) {
       console.error(error);
+    }
+  },
+  deleteContact: async (req, res) => {
+    try {
+      let contactId = req.params.contactId;
+      let db = new sqlite3.Database(DBSOURCE, (err) => {
+        if (err) {
+          console.error(err);
+          throw err;
+        } else {
+          db.run(
+            'DELETE FROM contacts WHERE contactId = ?',
+            contactId,
+            function(err, result) {
+              if (err) {
+                res.status(400).json({ "error": res.message });
+                return;
+              } else {
+                let params = [];
+                let contactsData = `SELECT contacts.contactId, contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+                db.all(contactsData, params, (err, rows) => {
+                  if (err) {
+                    res.send(`Hay un problema: ${err}`)
+                  } else {
+                    // console.log(rows);
+                    res.render('agenda', { rows });
+                  }
+                })
+              }
+            }
+          )
+        }
+      });
+      db.close((err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log('Databse connection closed.');
+        }
+      })
+    } catch (error) {
+      console.error(error);
+    }
+  },
+  updateContactDB: async (req, res) => {
+    try {
+      let contactId = req.params.id;
+      console.log(`El ID es: ${id}`);
+      let data = {
+        name: req.body.name,
+        lastName: req.body.lastName,
+        number: req.body.number,
+      }
+      console.log(data);
+      let db = new sqlite3.Database(DBSOURCE, (err) => {
+        if (err) {
+          console.error(err);
+          throw err;
+        } else {
+          db.run(`UPDATE contacts set name = COALESCE(?, name), lastName = COALESCE(?, lastName), number = COALESCE(?, number) WHERE contactId = ?`,
+            [data.name, data.lastName, data.number, contactId],
+            function(err, res) {
+              if (err) {
+                res.status(400).json({ "error": res.message })
+                return;
+              }
+            }
+          )
+          let params = [];
+          let contactsData = `SELECT contacts.contactId, contacts.name, contacts.lastName, contacts.number FROM users INNER JOIN contacts on users.id = contacts.id WHERE contacts.id = ${id}`;
+          db.all(contactsData, params, (err, rows) => {
+            if (err) {
+              res.send(`Hay un problema: ${err}`)
+            } else {
+              res.render('agenda', { rows });
+            }
+          })
+        }
+      });
+      db.close((err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log('Databse connection closed.');
+        }
+      })
+    } catch (error) {
+
     }
   }
 }

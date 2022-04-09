@@ -37,5 +37,27 @@ module.exports = {
     } catch (error) {
       console.error(error);
     }
+  },
+  updateContact: async (req, res) => {
+    try {
+      let id = req.params.contactId;
+      let data = `SELECT name, lastName, number FROM contacts WHERE contactId = ${id}`;
+      let db = new sqlite3.Database(DBSOURCE, err => {
+        if (err) {
+          console.error(err);
+          throw err;
+        } else {
+          db.get(data, (err, row) => {
+            if (err) {
+              console.error(err);
+            } else {
+              res.render('updateContact', { id, row });
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
